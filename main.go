@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"cloud.google.com/go/compute/metadata"
 	compute "google.golang.org/api/compute/v1"
 
+	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 )
 
