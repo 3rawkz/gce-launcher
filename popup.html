@@ -1,0 +1,34 @@
+<style>
+body {
+  width: 480px;
+}
+#errors {
+  color: red;
+}
+</style>
+<h1>GCE Launcher</h1>
+<div>Project ID <input id="project_id" type="text"/>
+<div>Zone <select id="zone"><option>us-west1-b</option></select></div>
+<h2>Instances</h2>
+<ul id="instances">
+	<li>Loading...</li>
+</ul>
+
+<div>
+	Disks
+	<select id="disks">
+		<option value="">Loading...</option>
+	</select>
+</div>
+<div>
+	Machine Type
+	<select id="machine_type">
+		<option value="">Loading...</option>
+	</select>
+</div>
+<button id="create">Create Instance</button>
+<button id="cleanup">Cleanup Instance</button>
+<br/>
+<div id="errors"></div>
+<div>Last updated: <span id="last_updated"></span></div>
+<script src="popup.js"></script>
