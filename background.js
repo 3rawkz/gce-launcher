@@ -6,10 +6,24 @@ const DEFAULT_PROJECT = "genial-airway-99405";
 const DEFAULT_ZONE = "us-west1-b";
 const DISK_NAME = "debian";
 
+function getProject() {
+  return window.localStorage.project || DEFAULT_PROJECT;
+}
+
+function getZone() {
+  return window.localStorage.zone || DEFAULT_ZONE;
+}
+
+function getDisk() {
+  return window.localStorage.disk || DISK_NAME;
+}
+
 function onLoadFn() {
   gapi.client.setApiKey(API_KEY);
-  gapi.client.load('compute', "v1");
-  auth();
+  Promise.all([gapi.client.load('compute', "v1"), auth()]).then(() => {
+    heartbeat();
+    setInterval(heartbeat, 30000);
+  });
 }
 
 function auth() {
@@ -27,33 +41,32 @@ function auth() {
 }
 
 const listeners = {
-  list_instances: (request) =>
-		      gapi.client.compute.instances
-			  .list({
-			    project: request.project || DEFAULT_PROJECT,
-			    zone: request.zone || DEFAULT_ZONE,
-			    filter: 'status ne TERMINATED'
-			  })
-			  .then((resp) => resp.result.items),
+  list_instances: (request) => gapi.client.compute.instances
+				   .list({
+				     project: request.project || getProject(),
+				     zone: request.zone || getZone(),
+				     filter: 'status ne TERMINATED'
+				   })
+				   .then((resp) => resp.result.items),
 
   list_disks: (request) => gapi.client.compute.disks
 			       .list({
-				 project: request.project || DEFAULT_PROJECT,
-				 zone: request.zone || DEFAULT_ZONE,
+				 project: request.project || getProject(),
+				 zone: request.zone || getZone(),
 			       })
 			       .then((resp) => resp.result.items),
 
   list_machine_types: (request) =>
 			  gapi.client.compute.machineTypes
 			      .list({
-				project: request.project || DEFAULT_PROJECT,
-				zone: request.zone || DEFAULT_ZONE,
+				project: request.project || getProject(),
+				zone: request.zone || getZone(),
 			      })
 			      .then((resp) => resp.result.items),
 
   create_instance: (request) => {
-    const zone = request.zone || DEFAULT_ZONE;
-    const disk_name = request.disk || DISK_NAME;
+    const zone = request.zone || getZone();
+    const disk_name = request.disk || getDisk();
     const disk = {
       source: "zones/" + zone + "/disks/" + disk_name,
       type: 'PERSISTENT',
@@ -87,7 +100,7 @@ const listeners = {
     };
     return gapi.client.compute.instances
 	.insert({
-	  project: request.project || DEFAULT_PROJECT,
+	  project: request.project || getProject(),
 	  zone: zone,
 	  resource: instance,
 	})
@@ -97,11 +110,18 @@ const listeners = {
   cleanup_instance:
       (request) => gapi.client.compute.instances
 		       .delete({
-			 project: request.project || DEFAULT_PROJECT,
-			 zone: request.zone || DEFAULT_ZONE,
-			 instance: 'instance-' + (request.disk || DISK_NAME),
+			 project: request.project || getProject(),
+			 zone: request.zone || getZone(),
+			 instance: 'instance-' + (request.disk || getDisk()),
 		       })
 		       .then((resp) => resp.result),
+
+  get: (request) => Promise.resolve(window.localStorage[request.key]),
+
+  set: (request) => {
+    window.localStorage[request.key] = request.value;
+    return Promise.resolve(window.localStorage[request.key]);
+  },
 };
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -132,3 +152,51 @@ var script = document.createElement('script');
 script.type = 'text/javascript';
 script.src = "https://apis.google.com/js/client.js?onload=onGAPILoad";
 head.appendChild(script);
+
+const heartbeatKey = "heartbeat";
+
+function heartbeat() {
+  const mtime = moment().add(5, 'minutes');
+  const time = mtime.toJSON();
+  const project = getProject();
+  const zone = getZone();
+  console.log("heartbeat start");
+  auth()
+      .then(() => listeners.list_instances({project: project, zone: zone}))
+      .then((instances) => {
+	if (!instances) {
+	  return;
+	}
+	const promises = [];
+
+	instances: for (let instance of instances) {
+	  const meta = instance.metadata;
+	  if (!meta.items) {
+	    meta.items = [];
+	  }
+	  let found = false;
+	  for (let kv of meta.items) {
+	    if (kv.key === heartbeatKey) {
+	      if (!mtime.isAfter(kv.value)) {
+		continue instances;
+	      }
+	      kv.value = time;
+	      found = true;
+	    }
+	  }
+	  if (!found) {
+	    meta.items.push({key: heartbeatKey, value: time});
+	  }
+	  console.log("heartbeat updating", instance.name);
+	  promises.push(gapi.client.compute.instances.setMetadata({
+	    project: project,
+	    zone: zone,
+	    instance: instance.name,
+	    resource: meta,
+	  }));
+	}
+	return Promise.all(promises);
+      })
+      .then(() => console.log("heartbeat success"))
+      .catch((err) => { console.log("heartbeat err", err); });
+}

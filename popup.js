@@ -2,8 +2,10 @@ const $zone = document.querySelector("#zone");
 const $disks = document.querySelector("#disks");
 const $projectID = document.querySelector("#project_id");
 $projectID.value = window.localStorage.projectID;
-$projectID.addEventListener(
-    "keyup", () => { window.localStorage.projectID = $projectID.value; });
+$projectID.addEventListener("keyup", () => {
+  window.localStorage.projectID = $projectID.value;
+  sendMessage("set", {key: "project", value: $projectID.value});
+});
 const $errors = document.querySelector("#errors");
 const $machineType = document.querySelector("#machine_type");
 
@@ -60,6 +62,7 @@ function fetchDisks() {
     const val = $disks.value;
     if (val) {
       window.localStorage.disk = val;
+      sendMessage("set", {key: "disk", value: disk});
     }
     $disks.innerHTML = html;
     $disks.value = window.localStorage.disk;
@@ -75,6 +78,7 @@ function fetchMachineTypes() {
     const val = $machineType.value;
     if (val) {
       window.localStorage.type = val;
+      sendMessage("set", {key: "machineType", value: val});
     }
     $machineType.innerHTML = html;
     $machineType.value = window.localStorage.type;
@@ -82,9 +86,11 @@ function fetchMachineTypes() {
 }
 
 function refreshUI() {
-  catchErr(Promise.all([fetchInstances(), fetchDisks(), fetchMachineTypes()]).then(() => {
-    document.querySelector("#last_updated").innerText = new Date();
-  }));
+  catchErr(
+      Promise.all([fetchInstances(), fetchDisks(), fetchMachineTypes()])
+	  .then(() => {
+	    document.querySelector("#last_updated").innerText = new Date();
+	  }));
 }
 
 refreshUI();
