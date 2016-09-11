@@ -20,6 +20,7 @@
     "https://apis.google.com/*",
     "identity", "https://accounts.google.com/*",
     "https://www.googleapis.com/*",
+    "https://cloudpricingcalculator.appspot.com/static/data/pricelist.json",
     "cookies"
   ],
   "oauth2": {

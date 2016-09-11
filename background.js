@@ -2,20 +2,17 @@ const CLIENT_ID =
     "82527149933-0b4975omj32if91m551eqb3q8bmmdcbv.apps.googleusercontent.com";
 const API_KEY = "AIzaSyCxck1nrcctZa_WX4-JDwOBTMOBCOQqzxo";
 const SCOPES = 'https://www.googleapis.com/auth/compute';
-const DEFAULT_PROJECT = "genial-airway-99405";
-const DEFAULT_ZONE = "us-west1-b";
-const DISK_NAME = "debian";
 
 function getProject() {
-  return window.localStorage.project || DEFAULT_PROJECT;
+  return window.localStorage.project;
 }
 
 function getZone() {
-  return window.localStorage.zone || DEFAULT_ZONE;
+  return window.localStorage.zone;
 }
 
 function getDisk() {
-  return window.localStorage.disk || DISK_NAME;
+  return window.localStorage.disk;
 }
 
 function onLoadFn() {
@@ -46,6 +43,12 @@ const listeners = {
 				     project: request.project || getProject(),
 				     zone: request.zone || getZone(),
 				     filter: 'status ne TERMINATED'
+				   })
+				   .then((resp) => resp.result.items),
+
+  list_zones: (request) => gapi.client.compute.zones
+				   .list({
+				     project: request.project || getProject(),
 				   })
 				   .then((resp) => resp.result.items),
 
@@ -112,7 +115,7 @@ const listeners = {
 		       .delete({
 			 project: request.project || getProject(),
 			 zone: request.zone || getZone(),
-			 instance: 'instance-' + (request.disk || getDisk()),
+			 instance: request.name,
 		       })
 		       .then((resp) => resp.result),
 
