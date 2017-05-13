@@ -23,9 +23,9 @@ function onLoadFn() {
   });
 }
 
-function auth() {
+function auth(interactive) {
   return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({interactive: true}, function(token) {
+    chrome.identity.getAuthToken({interactive: !!interactive}, function(token) {
       if (!token) {
 	alert('login failed!');
 	reject();
@@ -122,8 +122,8 @@ const listeners = {
   get: (request) => Promise.resolve(window.localStorage[request.key]),
 
   set: (request) => {
-    window.localStorage[request.key] = request.value;
-    return Promise.resolve(window.localStorage[request.key]);
+    window.localStorage[request.key] = JSON.stringify(request.value);
+    return Promise.resolve(JSON.parse(window.localStorage[request.key]));
   },
 };
 
@@ -203,3 +203,5 @@ function heartbeat() {
       .then(() => console.log("heartbeat success"))
       .catch((err) => { console.log("heartbeat err", err); });
 }
+
+auth(true);

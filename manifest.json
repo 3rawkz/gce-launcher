@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAh+AsN1SqUdd88nYkAxzsU/ofZJT1o81M24eOa7KlFkICI++xqKXQf7Bb6q5KJ/GwTx24FTN7JNoyhMmsKN6rsDIfkaCzIt88WbjOnD0IRp/TR6IEwROfjU8lhkwogx2KaE5IsBQ1kUch9p8hsJwxXMWYQG8/u6070nSTQUWI3nRziSmb51s4crkeynhXRJ5jGNDco21H909sRMQtYEbUjvYUcnkUnuT+rJ0A/rrak2vjVi0XCIIVMjY9xXXlAl3qLzr/iuni6kqY2f6e5Wk1bpe+Bg79aCZ0+19kJP1GCQGKwE1+3h/1qdvRKC9WasqCCt2cVGEuwL/ARAS70W8IQQIDAQAB",
   "name": "GCE Launcher",
   "description": "This extension launches a GCE instance on demand with a persistent disk.",
   "version": "1.0",
