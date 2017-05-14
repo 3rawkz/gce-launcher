@@ -4,15 +4,15 @@ const API_KEY = "AIzaSyCxck1nrcctZa_WX4-JDwOBTMOBCOQqzxo";
 const SCOPES = 'https://www.googleapis.com/auth/compute';
 
 function getProject() {
-  return window.localStorage.project;
+  return JSON.parse(window.localStorage.project);
 }
 
 function getZone() {
-  return window.localStorage.zone;
+  return JSON.parse(window.localStorage.zone);
 }
 
 function getDisk() {
-  return window.localStorage.disk;
+  return JSON.parse(window.localStorage.disk);
 }
 
 function onLoadFn() {
